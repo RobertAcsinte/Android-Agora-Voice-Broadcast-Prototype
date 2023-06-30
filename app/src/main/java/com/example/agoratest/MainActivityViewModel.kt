@@ -1,20 +1,17 @@
 package com.example.agoratest
 
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.example.agoratest.states.PermissionState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class MainActivityViewModel: ViewModel() {
-    val joinedState = mutableStateOf(false)
+
     val messages = mutableStateListOf<String>()
 
-    val hasInternetPermission = mutableStateOf(false)
-    val hasRecordAudioPermission = mutableStateOf(false)
-    val hasModifyAudioPermission = mutableStateOf(false)
-    val hasWifiStatePermission = mutableStateOf(false)
-    val hasNetworkStatePermission = mutableStateOf(false)
-    val hasReadPhoneState = mutableStateOf(false)
-    val hasBluetoothPermission = mutableStateOf(false)
+    private val _permissionsState = MutableStateFlow(PermissionState())
+    val permissionState = _permissionsState.asStateFlow()
 
     fun onPermissionResult(
         acceptedInternetPermission: Boolean,
@@ -25,20 +22,15 @@ class MainActivityViewModel: ViewModel() {
         acceptedReadPhoneStatePermission: Boolean,
         acceptedBluetoothPermission: Boolean,
     ) {
-        hasInternetPermission.value = acceptedInternetPermission
-        hasRecordAudioPermission.value = acceptedRecordAudioPermission
-        hasModifyAudioPermission.value = acceptedModifyAudioPermission
-        hasWifiStatePermission.value = acceptedWifiStatePermission
-        hasNetworkStatePermission.value = acceptedNetworkStatePermission
-        hasReadPhoneState.value = acceptedReadPhoneStatePermission
-        hasBluetoothPermission.value = acceptedBluetoothPermission
+        _permissionsState.value = PermissionState(
+            hasInternetPermission = acceptedInternetPermission,
+            hasRecordAudioPermission = acceptedRecordAudioPermission,
+            hasModifyAudioPermission = acceptedModifyAudioPermission,
+            hasWifiStatePermission = acceptedWifiStatePermission,
+            hasNetworkStatePermission = acceptedNetworkStatePermission,
+            hasReadPhoneStatePermission = acceptedReadPhoneStatePermission,
+            hasBluetoothPermission = acceptedBluetoothPermission,
+        )
     }
 
-    fun onJoinAudio() {
-        joinedState.value = true
-    }
-
-    fun onLeaveAudio() {
-        joinedState.value = false
-    }
 }

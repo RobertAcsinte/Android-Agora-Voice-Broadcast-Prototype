@@ -9,6 +9,8 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,13 +24,17 @@ import kotlinx.coroutines.withContext
 fun JoinAudioScreen(
     joinBroadcast: () -> Unit,
     joinAudience: () -> Unit,
+    openAppPermissions: () -> Unit,
     sharedViewModel: MainActivityViewModel,
     onNavigate: (String) -> Unit,
 ) {
+    val permissionState by sharedViewModel.permissionState.collectAsState()
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = {
             sharedViewModel.onPermissionResult(
+
                 acceptedInternetPermission = it[Manifest.permission.INTERNET] == true,
                 acceptedRecordAudioPermission = it[Manifest.permission.RECORD_AUDIO] == true,
                 acceptedModifyAudioPermission = it[Manifest.permission.MODIFY_AUDIO_SETTINGS] == true,
@@ -54,24 +60,43 @@ fun JoinAudioScreen(
         )
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = {
-            joinBroadcast()
-            onNavigate("audio_room_screen")
-        }) {
-            Text(text = "Join Broadcast")
+    if(permissionState.hasInternetPermission && permissionState.hasRecordAudioPermission && permissionState.hasModifyAudioPermission
+        && permissionState.hasWifiStatePermission && permissionState.hasNetworkStatePermission
+        && permissionState.hasReadPhoneStatePermission && permissionState.hasBluetoothPermission) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = {
+                joinBroadcast()
+                onNavigate("audio_room_screen")
+            }) {
+                Text(text = "Join Broadcast")
+            }
+            Button(onClick = {
+                joinAudience()
+                onNavigate("audio_room_screen")
+            }) {
+                Text(text = "Join Audience")
+            }
         }
-        Button(onClick = {
-            joinAudience()
-            onNavigate("audio_room_screen")
-        }) {
-            Text(text = "Join Audience")
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = "Please accept all permissions, restart the app and try again.")
+            Button(onClick = {
+                openAppPermissions()
+            }) {
+                Text(text = "Open App Permissions")
+            }
         }
     }
+
+
 }
 
